@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="歌詞メモ" />
+  <title>歌詞メモ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --text-xs: clamp(0.75rem, 0.72rem + 0.2vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.84rem + 0.2vw, 1rem);
+      --text-base: clamp(1rem, 0.96rem + 0.25vw, 1.0625rem);
+      --text-lg: clamp(1.125rem, 1.05rem + 0.4vw, 1.375rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1vw, 1.9rem);
+
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+
+      --radius-sm: 0.375rem;
+      --radius-md: 0.625rem;
+      --radius-lg: 0.875rem;
+      --radius-xl: 1rem;
+      --radius-full: 9999px;
+
+      --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+      --tab-height: 68px;
+      --font-body: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+    }
+
+    :root,
+    [data-theme="light"] {
+      --color-bg: #f7f6f2;
+      --color-surface: #f9f8f5;
+      --color-surface-2: #fbfbf9;
+      --color-surface-offset: #f1eeea;
+      --color-border: #d7d2ca;
+      --color-divider: #e2ddd5;
+      --color-text: #28251d;
+      --color-text-muted: #6f6d67;
+      --color-text-faint: #a8a49d;
+      --color-primary: #01696f;
+      --color-primary-hover: #0c4e54;
+      --color-primary-soft: #d9e7e5;
+      --color-danger: #a13544;
+      --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
+      --shadow-md: 0 8px 24px oklch(0.2 0.01 80 / 0.08);
+    }
+
+    [data-theme="dark"] {
+      --color-bg: #171614;
+      --color-surface: #1c1b19;
+      --color-surface-2: #201f1d;
+      --color-surface-offset: #252320;
+      --color-border: #393734;
+      --color-divider: #2a2825;
+      --color-text: #d2cfca;
+      --color-text-muted: #9a968f;
+      --color-text-faint: #6a655e;
+      --color-primary: #4f98a3;
+      --color-primary-hover: #66aebb;
+      --color-primary-soft: #263638;
+      --color-danger: #dd6974;
+      --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
+      --shadow-md: 0 10px 28px oklch(0 0 0 / 0.28);
+    }
+
+    * { box-sizing: border-box; }
+    html {
+      -webkit-text-size-adjust: none;
+      text-size-adjust: none;
+      -webkit-font-smoothing: antialiased;
+      scroll-behavior: smooth;
+    }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: 1.6;
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+    button, input, textarea, select {
+      font: inherit;
+      color: inherit;
+    }
+    button {
+      border: 0;
+      background: none;
+      cursor: pointer;
+    }
+    img, svg { display: block; max-width: 100%; }
+    :focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+      border-radius: var(--radius-sm);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    .skip-link {
+      position: absolute;
+      left: 12px;
+      top: -48px;
+      z-index: 50;
+      background: var(--color-primary);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: var(--radius-full);
+      text-decoration: none;
+    }
+    .skip-link:focus { top: 12px; }
+
+    .app-shell {
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      position: relative;
+      padding-bottom: calc(var(--tab-height) + env(safe-area-inset-bottom));
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: calc(env(safe-area-inset-top) + var(--space-4)) var(--space-4) var(--space-3);
+      background: color-mix(in oklab, var(--color-surface) 92%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+      flex-shrink: 0;
+    }
+    .brand-text h1 {
+      margin: 0;
+      font-size: var(--text-lg);
+      line-height: 1.2;
+    }
+    .brand-text p {
+      margin: 2px 0 0;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+    .header-actions {
+      display: flex;
+      gap: var(--space-2);
+      flex-shrink: 0;
+    }
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-full);
+      display: grid;
+      place-items: center;
+      color: var(--color-text-muted);
+      transition: background var(--transition), color var(--transition), transform var(--transition);
+    }
+    .icon-btn:active {
+      background: var(--color-surface-offset);
+      transform: scale(0.96);
+    }
+
+    main {
+      padding: var(--space-4);
+    }
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+    .stat-card {
+      background: var(--color-surface);
+      border: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
+      border-radius: var(--radius-lg);
+      padding: var(--space-3);
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+    }
+    .stat-num {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--color-primary);
+    }
+    .stat-label {
+      margin-top: 4px;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+
+    .section-title {
+      margin: 0 0 var(--space-3);
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      font-weight: 700;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-4);
+    }
+    .pill-btn, .chip {
+      min-height: 36px;
+      padding: 0 var(--space-3);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text-muted);
+      white-space: nowrap;
+      transition: all var(--transition);
+    }
+    .pill-btn.active, .chip.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+    }
+    .chip-row {
+      display: flex;
+      gap: var(--space-2);
+      overflow-x: auto;
+      padding-bottom: var(--space-2);
+      margin-bottom: var(--space-4);
+      scrollbar-width: none;
+    }
+    .chip-row::-webkit-scrollbar { display: none; }
+
+    .search-box {
+      position: relative;
+      margin-bottom: var(--space-4);
+    }
+    .search-box input {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 46px 0 44px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+    .search-box .lead,
+    .search-box .clear {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-text-faint);
+      display: grid;
+      place-items: center;
+    }
+    .search-box .lead { left: 14px; pointer-events: none; }
+    .search-box .clear {
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-full);
+    }
+
+    .card-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .song-card, .group-card {
+      background: var(--color-surface);
+      border: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .song-card {
+      padding: var(--space-4);
+    }
+    .song-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+    .song-title {
+      margin: 0;
+      font-size: var(--text-base);
+      line-height: 1.35;
+    }
+    .song-artist {
+      margin-top: 2px;
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+    .song-preview {
+      margin-top: var(--space-2);
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-1);
+      margin-top: var(--space-3);
+    }
+    .tag {
+      font-size: var(--text-xs);
+      padding: 2px 10px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+    }
+    .fav-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      color: var(--color-text-faint);
+      flex-shrink: 0;
+    }
+    .fav-btn.active { color: #d5a42a; }
+
+    .group-card {
+      padding: var(--space-4);
+    }
+    .group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+    .group-name {
+      font-size: var(--text-base);
+      font-weight: 700;
+      margin: 0;
+    }
+    .group-count {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      padding: 4px 10px;
+      background: var(--color-surface-offset);
+      border-radius: var(--radius-full);
+    }
+    .group-song-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .group-song-btn {
+      min-height: 44px;
+      width: 100%;
+      text-align: left;
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      background: var(--color-surface-2);
+      border: 1px solid color-mix(in oklab, var(--color-text) 6%, transparent);
+    }
+    .group-song-title {
+      font-weight: 700;
+      font-size: var(--text-sm);
+      line-height: 1.35;
+    }
+    .group-song-sub {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    .empty-state {
+      padding: var(--space-12) var(--space-4);
+      text-align: center;
+      color: var(--color-text-muted);
+    }
+    .empty-state svg {
+      margin: 0 auto var(--space-3);
+      color: var(--color-text-faint);
+    }
+    .empty-state h2 {
+      margin: 0 0 var(--space-2);
+      font-size: var(--text-base);
+      color: var(--color-text);
+    }
+    .empty-state p {
+      margin: 0 auto;
+      max-width: 28ch;
+      font-size: var(--text-sm);
+    }
+
+    .detail-header,
+    .form-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-5);
+    }
+    .back-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-full);
+      display: grid;
+      place-items: center;
+      color: var(--color-primary);
+      flex-shrink: 0;
+    }
+    .detail-title {
+      margin: 0;
+      font-size: var(--text-lg);
+      line-height: 1.3;
+    }
+    .detail-sub {
+      margin-top: 2px;
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+    .detail-body {
+      background: var(--color-surface);
+      border: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      box-shadow: var(--shadow-sm);
+    }
+    .detail-lyrics {
+      white-space: pre-wrap;
+      line-height: 1.95;
+      margin-top: var(--space-4);
+    }
+    .memo-box {
+      margin-top: var(--space-5);
+      padding: var(--space-4);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-offset);
+    }
+    .memo-label {
+      font-size: var(--text-xs);
+      color: var(--color-text-faint);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      margin-bottom: var(--space-2);
+    }
+    .action-row {
+      display: flex;
+      gap: var(--space-3);
+      margin-top: var(--space-5);
+      flex-wrap: wrap;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: var(--space-4);
+    }
+    .field label {
+      display: block;
+      font-size: var(--text-sm);
+      font-weight: 700;
+      margin-bottom: var(--space-2);
+      color: var(--color-text-muted);
+    }
+    .field input,
+    .field textarea {
+      width: 100%;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      border-radius: var(--radius-md);
+      padding: var(--space-3) var(--space-4);
+    }
+    .field textarea {
+      min-height: 160px;
+      resize: vertical;
+      line-height: 1.8;
+    }
+    .hint {
+      margin-top: var(--space-1);
+      font-size: var(--text-xs);
+      color: var(--color-text-faint);
+    }
+
+    .btn {
+      min-height: 44px;
+      padding: 0 var(--space-5);
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      transition: all var(--transition);
+    }
+    .btn-primary {
+      background: var(--color-primary);
+      color: #fff;
+    }
+    .btn-secondary {
+      background: var(--color-surface);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+    }
+    .btn-danger {
+      background: transparent;
+      color: var(--color-danger);
+      border: 1px solid color-mix(in oklab, var(--color-danger) 30%, transparent);
+    }
+    .btn-wide {
+      width: 100%;
+    }
+
+    .fab {
+      position: fixed;
+      right: max(20px, calc((100vw - 430px) / 2 + 20px));
+      bottom: calc(var(--tab-height) + env(safe-area-inset-bottom) + 16px);
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 8px 20px color-mix(in oklab, var(--color-primary) 45%, transparent);
+      z-index: 20;
+    }
+    @media (max-width: 430px) {
+      .fab { right: 20px; }
+    }
+
+    .tabbar {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 0;
+      width: min(430px, 100%);
+      height: calc(var(--tab-height) + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
+      background: color-mix(in oklab, var(--color-surface) 96%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+      display: flex;
+      z-index: 30;
+    }
+    .tab-btn {
+      flex: 1;
+      min-height: var(--tab-height);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--color-text-faint);
+      font-size: var(--text-xs);
+    }
+    .tab-btn.active { color: var(--color-primary); }
+
+    .utility-row {
+      display: flex;
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+      flex-wrap: wrap;
+    }
+
+    mark {
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+      border-radius: 4px;
+      padding: 0 2px;
+    }
+
+
+    .status-banner {
+      margin-bottom: var(--space-4);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-lg);
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+      font-size: var(--text-sm);
+      line-height: 1.6;
+      border: 1px solid color-mix(in oklab, var(--color-primary) 18%, transparent);
+    }
+    .status-banner.error {
+      background: color-mix(in oklab, var(--color-danger) 10%, var(--color-surface));
+      color: var(--color-danger);
+      border-color: color-mix(in oklab, var(--color-danger) 20%, transparent);
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">本文へ移動</a>
+  <div class="app-shell" id="app" data-theme="light">
+    <header class="header">
+      <div class="header-row">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+          </div>
+          <div class="brand-text">
+            <h1>歌詞メモ</h1>
+            <p>自分用の歌詞整理アプリ</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn" id="themeToggle" aria-label="テーマ切り替え"></button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <div class="status-banner" id="readingStatus">読み検索を準備中です。先に通常の操作はできます。</div>
+      <section class="screen active" id="screen-home" aria-label="ホーム">
+        <div class="stats-row" id="statsRow"></div>
+
+        <div class="hint">この版はlocalStorageに自動保存されます。同じブラウザ・同じURLで開けば、前回のデータが残ります。</div>
+        <div class="utility-row">
+          <button class="btn btn-secondary" id="exportBtn" type="button">JSON書き出し</button>
+          <label class="btn btn-secondary" for="importFile">JSON読み込み</label>
+          <input id="importFile" type="file" accept="application/json" class="hidden" />
+        </div>
+
+        <h2 class="section-title">タグで絞り込み</h2>
+        <div class="chip-row" id="tagFilterRow"></div>
+
+        <div class="card-list" id="homeList"></div>
+      </section>
+
+      <section class="screen" id="screen-search" aria-label="検索">
+        <div class="search-box">
+          <span class="lead" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+          </span>
+          <input id="searchInput" type="search" placeholder="曲名・アーティスト・歌詞・タグで検索" autocomplete="off" autocorrect="off" />
+          <button class="clear hidden" id="searchClear" aria-label="検索をクリア">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <p class="section-title" id="searchCount"></p>
+        <div class="card-list" id="searchList"></div>
+      </section>
+
+      <section class="screen" id="screen-groups" aria-label="分類">
+        <div class="toolbar" id="groupModeToolbar">
+          <button class="pill-btn active" data-mode="artist" type="button">アーティスト別</button>
+          <button class="pill-btn" data-mode="tag" type="button">タグ別</button>
+        </div>
+        <div class="card-list" id="groupList"></div>
+      </section>
+
+      <section class="screen" id="screen-detail" aria-label="詳細">
+        <div class="detail-header">
+          <button class="back-btn" id="detailBack" type="button" aria-label="戻る">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+          </button>
+          <div>
+            <h2 class="detail-title" id="detailTitle"></h2>
+            <div class="detail-sub" id="detailArtist"></div>
+          </div>
+        </div>
+        <div class="detail-body">
+          <div class="song-card-head">
+            <div class="tag-list" id="detailTags"></div>
+            <button class="fav-btn" id="detailFav" type="button" aria-label="お気に入り切り替え"></button>
+          </div>
+          <div class="detail-lyrics" id="detailLyrics"></div>
+          <div class="memo-box hidden" id="detailMemoWrap">
+            <div class="memo-label">メモ</div>
+            <div id="detailMemo"></div>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-secondary" id="editBtn" type="button">編集</button>
+            <button class="btn btn-danger" id="deleteBtn" type="button">削除</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-form" aria-label="登録フォーム">
+        <div class="form-header">
+          <button class="back-btn" id="formBack" type="button" aria-label="戻る">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+          </button>
+          <div>
+            <h2 class="detail-title" id="formTitle">曲を追加</h2>
+            <div class="detail-sub">必要な項目だけ入力すれば使えます</div>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="inputTitle">曲名 *</label>
+            <input id="inputTitle" type="text" placeholder="例：夜に駆ける" />
+          </div>
+          <div class="field">
+            <label for="inputArtist">アーティスト</label>
+            <input id="inputArtist" type="text" placeholder="例：YOASOBI" />
+          </div>
+          <div class="field">
+            <label for="inputLyrics">歌詞</label>
+            <textarea id="inputLyrics" placeholder="歌詞を入力してください"></textarea>
+          </div>
+          <div class="field">
+            <label for="inputTags">タグ</label>
+            <input id="inputTags" type="text" placeholder="例：アニソン、作業用、バラード" />
+            <div class="hint">スペース・読点・カンマで区切ると複数タグになります</div>
+          </div>
+          <div class="field">
+            <label for="inputMemo">メモ</label>
+            <textarea id="inputMemo" placeholder="好きなフレーズや感想など"></textarea>
+          </div>
+          <button class="btn btn-primary btn-wide" id="saveBtn" type="button">保存する</button>
+        </div>
+      </section>
+    </main>
+
+    <button class="fab" id="fab" type="button" aria-label="曲を追加">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+    </button>
+
+    <nav class="tabbar" aria-label="メインナビゲーション">
+      <button class="tab-btn active" data-screen="home" type="button">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7"></path><path d="M9 22V12h6v10"></path><path d="M21 22H3"></path></svg>
+        <span>一覧</span>
+      </button>
+      <button class="tab-btn" data-screen="search" type="button">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        <span>検索</span>
+      </button>
+      <button class="tab-btn" data-screen="groups" type="button">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"></path><path d="M3 12h18"></path><path d="M3 17h10"></path></svg>
+        <span>分類</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="./assets/vendor/kuroshiro.min.js"></script>
+  <script src="./assets/vendor/kuroshiro-analyzer-kuromoji.min.js"></script>
+  <script>
+    const app = document.getElementById('app');
+    const STORAGE_KEY = 'lyric-memo-storage-v3';
+    const readingStatusEl = document.getElementById('readingStatus');
+    const KuroshiroCtor = (typeof Kuroshiro === 'function') ? Kuroshiro : Kuroshiro.default;
+    const kuroshiro = new KuroshiroCtor();
+    let readingReady = false;
+    const defaultSongs = [
+      {
+        id: crypto.randomUUID(),
+        title: 'サンプル曲',
+        artist: 'サンプルアーティスト',
+        lyrics: 'ここに歌詞を入れます。\n検索では歌詞の一部でも探せます。\n\nあとから自分の曲データに置き換えて使ってください。',
+        tags: ['サンプル', 'お気に入り候補'],
+        memo: '右下の＋から追加、分類タブでアーティスト別やタグ別に見られます。',
+        favorite: true,
+        createdAt: Date.now() - 100000
+      },
+      {
+        id: crypto.randomUUID(),
+        title: '作業用プレイリスト候補',
+        artist: 'メモ用',
+        lyrics: '静かな曲を入れたい\n落ち着く歌詞をまとめたい',
+        tags: ['作業用'],
+        memo: '',
+        favorite: false,
+        createdAt: Date.now() - 50000
+      }
+    ];
+
+    function normalizeSongs(data) {
+      if (!Array.isArray(data)) return null;
+      const normalized = data.map(item => ({
+        id: item.id || crypto.randomUUID(),
+        title: String(item.title || '').trim(),
+        artist: String(item.artist || '').trim(),
+        lyrics: String(item.lyrics || ''),
+        tags: Array.isArray(item.tags) ? item.tags.map(tag => String(tag).trim()).filter(Boolean) : [],
+        memo: String(item.memo || ''),
+        favorite: Boolean(item.favorite),
+        createdAt: Number(item.createdAt) || Date.now(),
+        readingIndex: String(item.readingIndex || '')
+      })).filter(item => item.title);
+      return normalized;
+    }
+
+    function loadSongs() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return defaultSongs;
+        const parsed = JSON.parse(raw);
+        const normalized = normalizeSongs(parsed);
+        return normalized && normalized.length ? normalized : defaultSongs;
+      } catch {
+        return defaultSongs;
+      }
+    }
+
+    function persistSongs() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.songs));
+      } catch (error) {
+        console.warn('localStorageへの保存に失敗しました', error);
+      }
+    }
+
+
+    function toHiraganaBasic(text = '') {
+      return String(text)
+        .normalize('NFKC')
+        .replace(/[ァ-ヶ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60))
+        .toLowerCase();
+    }
+
+    function buildPlainIndex(song) {
+      return [song.title, song.artist, song.lyrics, song.memo, ...(song.tags || [])]
+        .filter(Boolean)
+        .join(' ');
+    }
+
+    async function buildReadingIndex(song) {
+      const source = buildPlainIndex(song);
+      const basic = toHiraganaBasic(source);
+      if (!source.trim() || !readingReady) return basic;
+      try {
+        const converted = await kuroshiro.convert(source, { to: 'hiragana' });
+        return toHiraganaBasic(converted + ' ' + source);
+      } catch {
+        return basic;
+      }
+    }
+
+    async function refreshSongReadingIndex(song) {
+      song.readingIndex = await buildReadingIndex(song);
+    }
+
+    async function rebuildAllReadingIndexes() {
+      for (const song of state.songs) {
+        song.readingIndex = await buildReadingIndex(song);
+      }
+      persistSongs();
+      if (state.screen === 'search') renderSearch();
+    }
+
+    function withTimeout(promise, ms, label) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error(label + ' timeout after ' + ms + 'ms')), ms))
+      ]);
+    }
+
+    const CDN_DICT_BASE = 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/';
+    const LOCAL_DICT_BASE = './dict/';
+
+    function patchXHRTimeout(ms) {
+      const OrigXHR = window.XMLHttpRequest;
+      function PatchedXHR() {
+        const xhr = new OrigXHR();
+        const origOpen = xhr.open.bind(xhr);
+        xhr.open = function (method, url, ...rest) {
+          let fixedUrl = url;
+          const localIdx = fixedUrl.indexOf(LOCAL_DICT_BASE.replace('./', ''));
+          if (fixedUrl.startsWith('https:/') && !fixedUrl.startsWith('https://')) {
+            fixedUrl = fixedUrl.replace('https:/', 'https://');
+          }
+          if (localIdx > -1 && useCdnDict) {
+            const fileName = fixedUrl.split('/').pop();
+            fixedUrl = CDN_DICT_BASE + fileName;
+          }
+          const result = origOpen.call(this, method, fixedUrl, ...rest);
+          xhr.timeout = ms;
+          xhr.addEventListener('timeout', () => {
+            if (typeof xhr.onerror === 'function') {
+              xhr.onerror(new Error('XHR timeout after ' + ms + 'ms: ' + fixedUrl));
+            }
+          });
+          return result;
+        };
+        return xhr;
+      }
+      window.XMLHttpRequest = PatchedXHR;
+      return () => { window.XMLHttpRequest = OrigXHR; };
+    }
+
+    let useCdnDict = false;
+
+    async function attemptReadingInit(attempt) {
+      useCdnDict = attempt >= 2;
+      const restoreXHR = patchXHRTimeout(12000);
+      try {
+        await withTimeout(
+          kuroshiro.init(new KuromojiAnalyzer({ dictPath: './dict/' })),
+          20000,
+          'kuroshiro.init'
+        );
+      } finally {
+        restoreXHR();
+      }
+    }
+
+    async function initReadingSearch() {
+      const maxAttempts = 4;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          readingStatusEl.textContent = '読み検索を準備中です（' + attempt + '/' + maxAttempts + '回目）。先に通常の操作はできます。';
+          readingStatusEl.classList.remove('hidden', 'error');
+          await attemptReadingInit(attempt);
+          readingReady = true;
+          readingStatusEl.textContent = '読み検索の準備が完了しました。「好き」⇄「すき」のような検索が使えます。';
+          setTimeout(() => readingStatusEl.classList.add('hidden'), 2500);
+          rebuildAllReadingIndexes();
+          return;
+        } catch (error) {
+          console.error('読み検索の初期化に失敗しました（' + attempt + '回目）:', error);
+          if (kuroshiro && kuroshiro._analyzer) {
+            try { kuroshiro._analyzer = null; } catch (e) {}
+          }
+        }
+      }
+      readingReady = false;
+      readingStatusEl.textContent = '読み検索は今回使えませんでした。通常検索はそのまま使えます。';
+      readingStatusEl.classList.add('error');
+      setTimeout(() => readingStatusEl.classList.add('hidden'), 4000);
+    }
+
+    const state = {
+      screen: 'home',
+      previousScreen: 'home',
+      detailId: null,
+      editingId: null,
+      searchQuery: '',
+      tagFilter: 'all',
+      groupMode: 'artist',
+      songs: loadSongs()
+    };
+
+    const els = {
+      themeToggle: document.getElementById('themeToggle'),
+      statsRow: document.getElementById('statsRow'),
+      homeList: document.getElementById('homeList'),
+      tagFilterRow: document.getElementById('tagFilterRow'),
+      searchInput: document.getElementById('searchInput'),
+      searchClear: document.getElementById('searchClear'),
+      searchCount: document.getElementById('searchCount'),
+      searchList: document.getElementById('searchList'),
+      groupList: document.getElementById('groupList'),
+      detailTitle: document.getElementById('detailTitle'),
+      detailArtist: document.getElementById('detailArtist'),
+      detailTags: document.getElementById('detailTags'),
+      detailLyrics: document.getElementById('detailLyrics'),
+      detailMemoWrap: document.getElementById('detailMemoWrap'),
+      detailMemo: document.getElementById('detailMemo'),
+      detailFav: document.getElementById('detailFav'),
+      formTitle: document.getElementById('formTitle'),
+      inputTitle: document.getElementById('inputTitle'),
+      inputArtist: document.getElementById('inputArtist'),
+      inputLyrics: document.getElementById('inputLyrics'),
+      inputTags: document.getElementById('inputTags'),
+      inputMemo: document.getElementById('inputMemo'),
+      importFile: document.getElementById('importFile')
+    };
+
+    const isDarkSystem = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let isDark = isDarkSystem;
+    function renderThemeIcon() {
+      app.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      els.themeToggle.innerHTML = isDark
+        ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79"></path></svg>'
+        : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>';
+    }
+    els.themeToggle.addEventListener('click', () => {
+      isDark = !isDark;
+      renderThemeIcon();
+    });
+    renderThemeIcon();
+
+    function esc(str = '') {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function highlight(text, query) {
+      const safeText = esc(text || '');
+      if (!query) return safeText;
+      const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return safeText.replace(new RegExp(safeQuery, 'gi'), match => `<mark>${match}</mark>`);
+    }
+
+    function normalizeSearchText(text) {
+      return toHiraganaBasic(text || '');
+    }
+
+    function previewText(text) {
+      return (text || '').replace(/\n+/g, ' ').trim();
+    }
+
+    function allTags() {
+      return [...new Set(state.songs.flatMap(song => song.tags))].filter(Boolean).sort((a, b) => a.localeCompare(b, 'ja'));
+    }
+
+    function songsByTagFilter() {
+      let list = [...state.songs].sort((a, b) => b.createdAt - a.createdAt);
+      if (state.tagFilter === 'favorites') return list.filter(song => song.favorite);
+      if (state.tagFilter !== 'all') return list.filter(song => song.tags.includes(state.tagFilter));
+      return list;
+    }
+
+    function renderStats() {
+      const favoriteCount = state.songs.filter(song => song.favorite).length;
+      const artistCount = new Set(state.songs.map(song => song.artist || '未分類')).size;
+      els.statsRow.innerHTML = `
+        <div class="stat-card"><div class="stat-num">${state.songs.length}</div><div class="stat-label">曲数</div></div>
+        <div class="stat-card"><div class="stat-num">${favoriteCount}</div><div class="stat-label">お気に入り</div></div>
+        <div class="stat-card"><div class="stat-num">${artistCount}</div><div class="stat-label">アーティスト</div></div>
+      `;
+    }
+
+    function renderTagFilters() {
+      const tags = allTags();
+      const items = [
+        { key: 'all', label: 'すべて' },
+        { key: 'favorites', label: 'お気に入り' },
+        ...tags.map(tag => ({ key: tag, label: tag }))
+      ];
+      els.tagFilterRow.innerHTML = items.map(item => `
+        <button class="chip ${state.tagFilter === item.key ? 'active' : ''}" data-tag="${esc(item.key)}" type="button">${esc(item.label)}</button>
+      `).join('');
+      els.tagFilterRow.querySelectorAll('[data-tag]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.tagFilter = btn.dataset.tag;
+          renderHome();
+        });
+      });
+    }
+
+    function songCardHtml(song, query = '') {
+      const preview = previewText(song.lyrics).slice(0, 80);
+      return `
+        <article class="song-card" data-song-id="${song.id}">
+          <div class="song-card-head">
+            <div>
+              <h3 class="song-title">${highlight(song.title, query)}</h3>
+              <div class="song-artist">${highlight(song.artist || 'アーティスト未入力', query)}</div>
+            </div>
+            <button class="fav-btn ${song.favorite ? 'active' : ''}" data-fav-id="${song.id}" type="button" aria-label="お気に入り切り替え">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="${song.favorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </button>
+          </div>
+          ${preview ? `<div class="song-preview">${highlight(preview, query)}</div>` : ''}
+          ${song.tags.length ? `<div class="tag-list">${song.tags.map(tag => `<span class="tag">${highlight(tag, query)}</span>`).join('')}</div>` : ''}
+        </article>
+      `;
+    }
+
+    function wireSongCards(scope) {
+      scope.querySelectorAll('[data-song-id]').forEach(card => {
+        card.addEventListener('click', event => {
+          if (event.target.closest('[data-fav-id]')) return;
+          openDetail(card.dataset.songId, state.screen);
+        });
+      });
+      scope.querySelectorAll('[data-fav-id]').forEach(btn => {
+        btn.addEventListener('click', event => {
+          event.stopPropagation();
+          toggleFavorite(btn.dataset.favId);
+        });
+      });
+    }
+
+    function renderHome() {
+      renderStats();
+      renderTagFilters();
+      const list = songsByTagFilter();
+      if (!list.length) {
+        els.homeList.innerHTML = emptyState('まだ曲がありません', '右下の＋ボタンから最初の曲を追加できます');
+        return;
+      }
+      els.homeList.innerHTML = list.map(song => songCardHtml(song)).join('');
+      wireSongCards(els.homeList);
+    }
+
+    function renderSearch() {
+      const q = state.searchQuery.trim();
+      if (!q) {
+        els.searchCount.textContent = '';
+        els.searchList.innerHTML = emptyState('検索してみましょう', '曲名・アーティスト・歌詞・タグの一部で探せます');
+        return;
+      }
+      const lower = q.toLowerCase();
+      const normalizedQuery = normalizeSearchText(q);
+      const results = state.songs.filter(song => {
+        const fields = [song.title, song.artist, song.lyrics, song.memo, ...song.tags].join(' ').toLowerCase();
+        const readingField = normalizeSearchText(song.readingIndex || fields);
+        return fields.includes(lower) || readingField.includes(normalizedQuery);
+      }).sort((a, b) => b.createdAt - a.createdAt);
+      els.searchCount.textContent = `${results.length}件見つかりました`;
+      if (!results.length) {
+        els.searchList.innerHTML = emptyState(`「${esc(q)}」は見つかりませんでした`, '別のキーワードを試してください');
+        return;
+      }
+      els.searchList.innerHTML = results.map(song => songCardHtml(song, q)).join('');
+      wireSongCards(els.searchList);
+    }
+
+    function buildGroups(mode) {
+      const map = new Map();
+      state.songs.forEach(song => {
+        if (mode === 'artist') {
+          const key = song.artist?.trim() || 'アーティスト未入力';
+          if (!map.has(key)) map.set(key, []);
+          map.get(key).push(song);
+          return;
+        }
+        const tags = song.tags.length ? song.tags : ['タグなし'];
+        tags.forEach(tag => {
+          if (!map.has(tag)) map.set(tag, []);
+          map.get(tag).push(song);
+        });
+      });
+      return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'ja'));
+    }
+
+    function renderGroups() {
+      document.querySelectorAll('[data-mode]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === state.groupMode);
+      });
+      const groups = buildGroups(state.groupMode);
+      if (!groups.length) {
+        els.groupList.innerHTML = emptyState('まだ分類できる曲がありません', '曲を追加すると、ここでアーティスト別・タグ別にまとまります');
+        return;
+      }
+      els.groupList.innerHTML = groups.map(([name, songs]) => `
+        <section class="group-card">
+          <div class="group-head">
+            <h3 class="group-name">${esc(name)}</h3>
+            <div class="group-count">${songs.length}曲</div>
+          </div>
+          <div class="group-song-list">
+            ${songs.sort((a, b) => a.title.localeCompare(b.title, 'ja')).map(song => `
+              <button class="group-song-btn" type="button" data-open-song="${song.id}">
+                <div class="group-song-title">${esc(song.title)}</div>
+                <div class="group-song-sub">${esc(song.artist || 'アーティスト未入力')}</div>
+              </button>
+            `).join('')}
+          </div>
+        </section>
+      `).join('');
+      els.groupList.querySelectorAll('[data-open-song]').forEach(btn => {
+        btn.addEventListener('click', () => openDetail(btn.dataset.openSong, 'groups'));
+      });
+    }
+
+    function openDetail(id, fromScreen) {
+      const song = state.songs.find(item => item.id === id);
+      if (!song) return;
+      state.detailId = id;
+      state.previousScreen = fromScreen || state.screen;
+      els.detailTitle.textContent = song.title;
+      els.detailArtist.textContent = song.artist || 'アーティスト未入力';
+      els.detailLyrics.textContent = song.lyrics || '歌詞はまだ入力されていません。';
+      els.detailTags.innerHTML = song.tags.length ? song.tags.map(tag => `<span class="tag">${esc(tag)}</span>`).join('') : '<span class="tag">タグなし</span>';
+      if (song.memo) {
+        els.detailMemo.textContent = song.memo;
+        els.detailMemoWrap.classList.remove('hidden');
+      } else {
+        els.detailMemoWrap.classList.add('hidden');
+      }
+      renderDetailFavorite(song.favorite);
+      showScreen('detail');
+    }
+
+    function renderDetailFavorite(favorite) {
+      els.detailFav.classList.toggle('active', favorite);
+      els.detailFav.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="${favorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+    }
+
+    function showScreen(name) {
+      state.screen = name;
+      document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.toggle('active', screen.id === `screen-${name}`);
+      });
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.screen === name);
+      });
+      document.getElementById('fab').classList.toggle('hidden', !['home', 'search', 'groups'].includes(name));
+      if (name === 'home') renderHome();
+      if (name === 'search') renderSearch();
+      if (name === 'groups') renderGroups();
+    }
+
+    function openNewForm() {
+      state.previousScreen = state.screen;
+      state.editingId = null;
+      els.formTitle.textContent = '曲を追加';
+      els.inputTitle.value = '';
+      els.inputArtist.value = '';
+      els.inputLyrics.value = '';
+      els.inputTags.value = '';
+      els.inputMemo.value = '';
+      showScreen('form');
+    }
+
+    function openEditForm() {
+      const song = state.songs.find(item => item.id === state.detailId);
+      if (!song) return;
+      state.previousScreen = 'detail';
+      state.editingId = song.id;
+      els.formTitle.textContent = '曲を編集';
+      els.inputTitle.value = song.title;
+      els.inputArtist.value = song.artist || '';
+      els.inputLyrics.value = song.lyrics || '';
+      els.inputTags.value = song.tags.join(' ');
+      els.inputMemo.value = song.memo || '';
+      showScreen('form');
+    }
+
+    async function saveSong() {
+      const title = els.inputTitle.value.trim();
+      if (!title) {
+        els.inputTitle.focus();
+        return;
+      }
+      const artist = els.inputArtist.value.trim();
+      const lyrics = els.inputLyrics.value;
+      const tags = [...new Set(els.inputTags.value.split(/[\s,、，　]+/).map(tag => tag.trim()).filter(Boolean))];
+      const memo = els.inputMemo.value.trim();
+
+      if (state.editingId) {
+        const song = state.songs.find(item => item.id === state.editingId);
+        if (!song) return;
+        song.title = title;
+        song.artist = artist;
+        song.lyrics = lyrics;
+        song.tags = tags;
+        song.memo = memo;
+        song.readingIndex = buildPlainIndex(song);
+        persistSongs();
+        if (readingReady) refreshSongReadingIndex(song).then(() => persistSongs());
+        openDetail(song.id, 'home');
+      } else {
+        const newSong = {
+          id: crypto.randomUUID(),
+          title,
+          artist,
+          lyrics,
+          tags,
+          memo,
+          favorite: false,
+          createdAt: Date.now(),
+          readingIndex: buildPlainIndex({ title, artist, lyrics, tags, memo })
+        };
+        state.songs.unshift(newSong);
+        persistSongs();
+        if (readingReady) refreshSongReadingIndex(newSong).then(() => persistSongs());
+        state.tagFilter = 'all';
+        showScreen('home');
+    initReadingSearch();
+      }
+    }
+
+    function deleteCurrentSong() {
+      const song = state.songs.find(item => item.id === state.detailId);
+      if (!song) return;
+      if (!confirm(`「${song.title}」を削除しますか？`)) return;
+      state.songs = state.songs.filter(item => item.id !== song.id);
+      persistSongs();
+      showScreen(state.previousScreen === 'detail' ? 'home' : state.previousScreen);
+    }
+
+    function toggleFavorite(id) {
+      const song = state.songs.find(item => item.id === id);
+      if (!song) return;
+      song.favorite = !song.favorite;
+      persistSongs();
+      if (state.screen === 'detail' && state.detailId === id) renderDetailFavorite(song.favorite);
+      if (state.screen === 'home') renderHome();
+      if (state.screen === 'search') renderSearch();
+      if (state.screen === 'groups') renderGroups();
+    }
+
+    function emptyState(title, text) {
+      return `
+        <div class="empty-state">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+          <h2>${title}</h2>
+          <p>${text}</p>
+        </div>
+      `;
+    }
+
+    function exportJson() {
+      const blob = new Blob([JSON.stringify(state.songs, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'lyric-memo-data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importJson(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (!Array.isArray(data)) throw new Error('invalid');
+          const normalized = normalizeSongs(data);
+          if (!normalized) throw new Error('invalid');
+          state.songs = normalized;
+          persistSongs();
+          if (readingReady) rebuildAllReadingIndexes();
+          state.tagFilter = 'all';
+          state.searchQuery = '';
+          els.searchInput.value = '';
+          els.searchClear.classList.add('hidden');
+          showScreen('home');
+        } catch {
+          alert('JSONの読み込みに失敗しました。');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => showScreen(btn.dataset.screen));
+    });
+    document.querySelectorAll('[data-mode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.groupMode = btn.dataset.mode;
+        renderGroups();
+      });
+    });
+
+    document.getElementById('fab').addEventListener('click', openNewForm);
+    document.getElementById('formBack').addEventListener('click', () => {
+      if (state.previousScreen === 'detail' && state.detailId) openDetail(state.detailId, 'home');
+      else showScreen(state.previousScreen || 'home');
+    });
+    document.getElementById('detailBack').addEventListener('click', () => showScreen(state.previousScreen || 'home'));
+    document.getElementById('saveBtn').addEventListener('click', saveSong);
+    document.getElementById('editBtn').addEventListener('click', openEditForm);
+    document.getElementById('deleteBtn').addEventListener('click', deleteCurrentSong);
+    document.getElementById('exportBtn').addEventListener('click', exportJson);
+    els.importFile.addEventListener('change', event => {
+      const file = event.target.files?.[0];
+      if (file) importJson(file);
+      event.target.value = '';
+    });
+
+    els.detailFav.addEventListener('click', () => {
+      if (!state.detailId) return;
+      toggleFavorite(state.detailId);
+    });
+
+    els.searchInput.addEventListener('input', event => {
+      state.searchQuery = event.target.value;
+      els.searchClear.classList.toggle('hidden', !state.searchQuery);
+      renderSearch();
+    });
+    els.searchClear.addEventListener('click', () => {
+      state.searchQuery = '';
+      els.searchInput.value = '';
+      els.searchClear.classList.add('hidden');
+      renderSearch();
+      els.searchInput.focus();
+    });
+
+    showScreen('home');
+  </script>
+</body>
+</html>
